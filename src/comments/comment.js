@@ -24,7 +24,7 @@ const generateCommentBody = ({ uploadStatus, ipfsRootCid, dataSetId, pieceCid, p
     dataSetId,
     pieceCid,
     previewUrl,
-    network
+    network,
   }
 
   return renderTemplate(template, context)
