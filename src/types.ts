@@ -114,7 +114,7 @@ export interface PrCommentContext {
   ipfsRootCid: string
   dataSetId: string
   pieceCid: string
-  previewUrl?: string
+  previewUrl?: string | undefined
 }
 
 export interface PrCommentTemplate {
