@@ -1,7 +1,7 @@
 import { Octokit } from '@octokit/rest'
-import { getCommentTemplate, renderTemplate } from './templates.js'
 import { loadContext } from '../context.js'
 import { getErrorMessage } from '../errors.js'
+import { getCommentTemplate, renderTemplate } from './templates.js'
 
 /**
  * @typedef {import('../types.js').PrCommentContext} PrCommentContext
