@@ -37,6 +37,12 @@ export interface CombinedContext {
   with_cdn?: boolean
   provider_address?: string
   preview_url?: string
+  payment_status?: {
+    depositedAmount?: string
+    currentBalance?: string
+    storageRunway?: string
+    depositedThisRun?: string
+  }
 }
 
 export interface ParsedInputs {
