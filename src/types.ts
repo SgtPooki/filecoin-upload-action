@@ -87,6 +87,7 @@ export interface CommentPRParams {
   prNumber?: number
   githubToken: string
   githubRepository: string
+  network?: string | undefined
 }
 
 export interface PaymentConfig {
@@ -115,6 +116,7 @@ export interface PrCommentContext {
   dataSetId: string
   pieceCid: string
   previewUrl?: string | undefined
+  network?: string | undefined
 }
 
 export interface PrCommentTemplate {

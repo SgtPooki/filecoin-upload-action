@@ -10,10 +10,10 @@ import { getCommentTemplate, renderTemplate } from './templates.js'
 
 /**
  * Generate comment body based on upload status
- * @param {Pick<CommentPRParams, 'uploadStatus' | 'ipfsRootCid' | 'dataSetId' | 'pieceCid' | 'previewUrl'>} param0
+ * @param {Pick<CommentPRParams, 'uploadStatus' | 'ipfsRootCid' | 'dataSetId' | 'pieceCid' | 'previewUrl' | 'network'>} param0
  * @returns
  */
-const generateCommentBody = ({ uploadStatus, ipfsRootCid, dataSetId, pieceCid, previewUrl }) => {
+const generateCommentBody = ({ uploadStatus, ipfsRootCid, dataSetId, pieceCid, previewUrl, network }) => {
   const template = getCommentTemplate(/** @type {PrCommentTemplateKeys} */ (uploadStatus))
   /**
    * @type {PrCommentContext}
@@ -24,6 +24,7 @@ const generateCommentBody = ({ uploadStatus, ipfsRootCid, dataSetId, pieceCid, p
     dataSetId,
     pieceCid,
     previewUrl,
+    network
   }
 
   return renderTemplate(template, context)
@@ -86,7 +87,14 @@ export async function commentOnPR(params) {
 
   const octokit = new Octokit({ auth: githubToken })
 
-  const body = generateCommentBody({ uploadStatus, ipfsRootCid, dataSetId, pieceCid, previewUrl })
+  const body = generateCommentBody({
+    uploadStatus,
+    ipfsRootCid,
+    dataSetId,
+    pieceCid,
+    previewUrl,
+    network: ctx.network,
+  })
 
   try {
     // Find existing comment
