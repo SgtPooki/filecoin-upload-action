@@ -40,8 +40,9 @@ export const commentTemplates = {
       ],
       (ctx) => [statusLine(ctx)],
       (ctx) => [
-        '- Preview (temporary centralized gateway):',
-        `  - ${ctx.ipfsRootCid ? `https://ipfs.io/ipfs/${ctx.ipfsRootCid}` : 'Preview unavailable'}`,
+        '- Preview:',
+        `  - IPFS: ${ctx.ipfsRootCid ? `https://dweb.link/ipfs/${ctx.ipfsRootCid}` : 'IPFS Root CID unavailable'}`,
+        `  - Filecoin: ${ctx.previewUrl || 'Filecoin preview unavailable'}`,
       ],
     ],
   },

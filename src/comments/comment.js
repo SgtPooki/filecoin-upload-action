@@ -10,12 +10,11 @@ import { getCommentTemplate, renderTemplate } from './templates.js'
 
 /**
  * Generate comment body based on upload status
- * @param {Pick<CommentPRParams, 'uploadStatus' | 'ipfsRootCid' | 'dataSetId' | 'pieceCid'>} param0
+ * @param {Pick<CommentPRParams, 'uploadStatus' | 'ipfsRootCid' | 'dataSetId' | 'pieceCid' | 'previewUrl'>} param0
  * @returns
  */
-const generateCommentBody = ({ uploadStatus, ipfsRootCid, dataSetId, pieceCid }) => {
+const generateCommentBody = ({ uploadStatus, ipfsRootCid, dataSetId, pieceCid, previewUrl }) => {
   const template = getCommentTemplate(/** @type {PrCommentTemplateKeys} */ (uploadStatus))
-  const previewUrl = ipfsRootCid ? `https://ipfs.io/ipfs/${ipfsRootCid}` : 'Preview unavailable'
   /**
    * @type {PrCommentContext}
    */
@@ -41,7 +40,7 @@ const generateCommentBody = ({ uploadStatus, ipfsRootCid, dataSetId, pieceCid })
  */
 export async function commentOnPR(params) {
   /** @type {CommentPRParams} */
-  let { ipfsRootCid, dataSetId, pieceCid, uploadStatus, prNumber, githubToken, githubRepository } = params
+  let { ipfsRootCid, dataSetId, pieceCid, uploadStatus, previewUrl, prNumber, githubToken, githubRepository } = params
   // Try to get PR number from parameter or context
   /** @type {number | undefined} */
   let resolvedPrNumber = prNumber
@@ -87,7 +86,7 @@ export async function commentOnPR(params) {
 
   const octokit = new Octokit({ auth: githubToken })
 
-  const body = generateCommentBody({ uploadStatus, ipfsRootCid, dataSetId, pieceCid })
+  const body = generateCommentBody({ uploadStatus, ipfsRootCid, dataSetId, pieceCid, previewUrl })
 
   try {
     // Find existing comment

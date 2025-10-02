@@ -80,6 +80,10 @@ export interface CommentPRParams {
   dataSetId: string
   pieceCid: string
   uploadStatus: string
+  /**
+   * The piece CID preview URL, directly from the provider
+   */
+  previewUrl?: string | undefined
   prNumber?: number
   githubToken: string
   githubRepository: string
@@ -110,8 +114,7 @@ export interface PrCommentContext {
   ipfsRootCid: string
   dataSetId: string
   pieceCid: string
-  // statusLine: string
-  previewUrl: string
+  previewUrl?: string
 }
 
 export interface PrCommentTemplate {
