@@ -1,22 +1,13 @@
 import { access } from 'node:fs/promises'
-import { ethers } from 'ethers'
-import { getPaymentStatus } from 'filecoin-pin/dist/synapse/payments.js'
 import pc from 'picocolors'
 import pino from 'pino'
 import { commentOnPR } from './comments/comment.js'
 import { getGlobalContext, mergeAndSaveContext } from './context.js'
-import {
-  calculateStorageRunway,
-  cleanupSynapse,
-  handlePayments,
-  initializeSynapse,
-  uploadCarToFilecoin,
-} from './filecoin.js'
+import { cleanupSynapse, handlePayments, initializeSynapse, uploadCarToFilecoin } from './filecoin.js'
 import { ensurePullRequestContext } from './github.js'
 import { parseInputs } from './inputs.js'
 import { writeOutputs, writeSummary } from './outputs.js'
 
-// Import types for JSDoc
 /**
  * @typedef {import('./types.js').CombinedContext} CombinedContext
  * @typedef {import('./types.js').ParsedInputs} ParsedInputs
@@ -105,19 +96,12 @@ export async function runUpload() {
   }
   const synapse = await initializeSynapse({ walletPrivateKey, network: inputNetwork }, logger)
 
-  // Get initial payment status to track deposits
-  const initialPaymentStatus = await getPaymentStatus(synapse)
   const paymentStatus = await handlePayments(synapse, { minStorageDays, filecoinPayBalanceLimit }, logger)
 
   const uploadResult = /** @type {UploadResult} */ (
     await uploadCarToFilecoin(synapse, carPath, rootCid, { withCDN, providerAddress }, logger)
   )
   const { pieceCid, pieceId, dataSetId, provider, previewURL, network } = uploadResult
-
-  // Calculate the amount deposited in this run
-  const initialBalance = initialPaymentStatus?.depositedAmount || 0n
-  const finalBalance = paymentStatus?.depositedAmount || 0n
-  const depositedThisRun = finalBalance - initialBalance
 
   // Update context
   await mergeAndSaveContext({
@@ -129,12 +113,7 @@ export async function runUpload() {
     network,
     contentPath: contentPath,
     uploadStatus: 'uploaded',
-    paymentStatus: {
-      depositedAmount: paymentStatus?.depositedAmount ? ethers.formatUnits(paymentStatus.depositedAmount, 18) : '0',
-      currentBalance: paymentStatus?.depositedAmount ? ethers.formatUnits(paymentStatus.depositedAmount, 18) : '0',
-      storageRunway: calculateStorageRunway(paymentStatus),
-      depositedThisRun: ethers.formatUnits(depositedThisRun, 18),
-    },
+    paymentStatus,
   })
 
   // Write outputs

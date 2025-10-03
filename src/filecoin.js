@@ -9,7 +9,6 @@ import {
   depositUSDFC,
   getPaymentStatus,
 } from 'filecoin-pin/dist/synapse/payments.js'
-// Import filecoin-pin internals
 import {
   cleanupSynapseService,
   createStorageContext,
@@ -21,8 +20,17 @@ import { CID } from 'multiformats/cid'
 import { ERROR_CODES, FilecoinPinError, getErrorMessage } from './errors.js'
 
 /**
+ * @typedef {import('./types.js').ParsedInputs} ParsedInputs
+ * @typedef {import('./types.js').BuildResult} BuildResult
+ * @typedef {import('./types.js').UploadResult} UploadResult
+ * @typedef {import('./types.js').PaymentStatus} PaymentStatus
+ * @typedef {import('./types.js').FilecoinPinPaymentStatus} FilecoinPinPaymentStatus
+ * @typedef {import('@filoz/synapse-sdk').Synapse} Synapse
+ */
+
+/**
  * Calculate storage runway based on current payment status
- * @param {any} status - Payment status from getPaymentStatus
+ * @param {FilecoinPinPaymentStatus} status - Payment status from getPaymentStatus
  * @returns {string} Formatted runway duration or 'Unknown'
  */
 export function calculateStorageRunway(status) {
@@ -46,18 +54,11 @@ export function calculateStorageRunway(status) {
   return 'No active spend detected'
 }
 
-// Import types for JSDoc
-/**
- * @typedef {import('./types.js').ParsedInputs} ParsedInputs
- * @typedef {import('./types.js').BuildResult} BuildResult
- * @typedef {import('./types.js').UploadResult} UploadResult
- */
-
 /**
  * Initialize Synapse sdk with error handling
  * @param {{ walletPrivateKey: string, network: 'mainnet' | 'calibration' }} config - Wallet and network config
  * @param {any} logger - Logger instance
- * @returns {Promise<any>} Synapse service
+ * @returns {Promise<Synapse>} Synapse service
  */
 export async function initializeSynapse(config, logger) {
   try {
@@ -84,10 +85,10 @@ export async function initializeSynapse(config, logger) {
 
 /**
  * Handle payment setup and top-ups
- * @param {any} synapse - Synapse service
+ * @param {Synapse} synapse - Synapse service
  * @param {{ minStorageDays: number, filecoinPayBalanceLimit?: bigint | undefined }} options - Payment options
  * @param {any} logger - Logger instance
- * @returns {Promise<any>} Updated payment status
+ * @returns {Promise<PaymentStatus>} Updated payment status
  */
 export async function handlePayments(synapse, options, logger) {
   const { minStorageDays, filecoinPayBalanceLimit } = options
@@ -96,29 +97,30 @@ export async function handlePayments(synapse, options, logger) {
   await checkAndSetAllowances(synapse)
 
   // Check current payment status
-  let status = await getPaymentStatus(synapse)
+  const initialStatus = await getPaymentStatus(synapse)
+  let newStatus = initialStatus
 
   // Compute top-up to satisfy minStorageDays
   let requiredTopUp = 0n
   if (minStorageDays > 0) {
-    const { topUp } = computeTopUpForDuration(status, minStorageDays)
+    const { topUp } = computeTopUpForDuration(initialStatus, minStorageDays)
     if (topUp > requiredTopUp) requiredTopUp = topUp
   }
 
   // Check if deposit would exceed maximum balance if specified
   if (filecoinPayBalanceLimit != null && filecoinPayBalanceLimit >= 0n) {
     // Check if current balance already equals or exceeds limit
-    if (status.depositedAmount >= filecoinPayBalanceLimit) {
+    if (initialStatus.depositedAmount >= filecoinPayBalanceLimit) {
       logger.warn(
-        `⚠️  Current balance (${ethers.formatUnits(status.depositedAmount, 18)} USDFC) already equals or exceeds filecoinPayBalanceLimit (${ethers.formatUnits(filecoinPayBalanceLimit, 18)} USDFC). No additional deposits will be made.`
+        `⚠️  Current balance (${ethers.formatUnits(initialStatus.depositedAmount, 18)} USDFC) already equals or exceeds filecoinPayBalanceLimit (${ethers.formatUnits(filecoinPayBalanceLimit, 18)} USDFC). No additional deposits will be made.`
       )
       requiredTopUp = 0n // Don't deposit anything
     } else {
       // Check if required top-up would exceed the limit
-      const projectedBalance = status.depositedAmount + requiredTopUp
+      const projectedBalance = initialStatus.depositedAmount + requiredTopUp
       if (projectedBalance > filecoinPayBalanceLimit) {
         // Calculate the maximum allowed top-up that won't exceed the limit
-        const maxAllowedTopUp = filecoinPayBalanceLimit - status.depositedAmount
+        const maxAllowedTopUp = filecoinPayBalanceLimit - initialStatus.depositedAmount
 
         if (maxAllowedTopUp <= 0n) {
           // This shouldn't happen due to the check above, but just in case
@@ -140,10 +142,22 @@ export async function handlePayments(synapse, options, logger) {
   if (requiredTopUp > 0n) {
     logger.info(`Depositing ${ethers.formatUnits(requiredTopUp, 18)} USDFC to Filecoin Pay ...`)
     await depositUSDFC(synapse, requiredTopUp)
-    status = await getPaymentStatus(synapse)
+    newStatus = await getPaymentStatus(synapse)
+  } else {
+    requiredTopUp = 0n
   }
 
-  return status
+  return {
+    ...initialStatus,
+    // the amount of USDFC you have deposited to Filecoin Pay
+    depositedAmount: ethers.formatUnits(newStatus.depositedAmount, 18),
+    // the amount of USDFC you have in your wallet
+    currentBalance: ethers.formatUnits(newStatus.usdfcBalance, 18),
+    // the amount of time you have until your funds would run out based on storage usage
+    storageRunway: calculateStorageRunway(newStatus),
+    // the amount of USDFC you have deposited to Filecoin Pay in this run
+    depositedThisRun: ethers.formatUnits(requiredTopUp, 18),
+  }
 }
 
 /**

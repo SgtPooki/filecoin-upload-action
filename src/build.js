@@ -5,7 +5,6 @@ import { createCarFile } from './filecoin.js'
 import { readEventPayload } from './github.js'
 import { formatSize } from './outputs.js'
 
-// Import types for JSDoc
 /**
  * @typedef {import('./types.js').CombinedContext} CombinedContext
  * @typedef {import('./types.js').ParsedInputs} ParsedInputs

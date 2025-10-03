@@ -3,9 +3,9 @@ import { ethers } from 'ethers'
 import { formatUSDFC } from 'filecoin-pin/dist/payments/setup.js'
 import { getErrorMessage } from './errors.js'
 
-// Import types for JSDoc
 /**
  * @typedef {import('./types.js').CombinedContext} CombinedContext
+ * @typedef {import('./types.js').PaymentStatus} PaymentStatus
  */
 
 /**
@@ -77,7 +77,23 @@ export function getOutputSummary(context, status) {
   const carPath = context?.carPath || ''
   const carSize = context?.carSize
   const carDownloadUrl = context?.carDownloadUrl || (carPath ? `[download link](${carPath})` : 'download')
-  const paymentStatus = context?.paymentStatus || {}
+  /** @type {PaymentStatus} */
+  const paymentStatus = {
+    depositedAmount: '0',
+    currentBalance: '0',
+    storageRunway: 'Unknown',
+    depositedThisRun: '0',
+    network,
+    address: 'Unknown',
+    filBalance: 0n,
+    usdfcBalance: 0n,
+    currentAllowances: {
+      rateAllowance: 0n,
+      lockupAllowance: 0n,
+      lockupUsed: 0n,
+    },
+    ...context?.paymentStatus,
+  }
 
   return [
     '## Filecoin Pin Upload',

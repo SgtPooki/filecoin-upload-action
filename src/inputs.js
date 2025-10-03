@@ -1,7 +1,6 @@
 import { resolve } from 'node:path'
 import { ethers } from 'ethers'
 
-// Import types for JSDoc
 /**
  * @typedef {import('./types.js').ParsedInputs} ParsedInputs
  */

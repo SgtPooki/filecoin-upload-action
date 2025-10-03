@@ -2,7 +2,6 @@ import { promises as fs } from 'node:fs'
 import { join } from 'node:path'
 import { getErrorMessage } from './errors.js'
 
-// Import types for JSDoc
 /**
  * @typedef {import('./types.js').CombinedContext} CombinedContext
  */
