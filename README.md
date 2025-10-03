@@ -85,7 +85,6 @@ jobs:
 | Name | Required | Default | Description |
 |------|----------|---------|-------------|
 | `providerAddress` | false | `0xa3971…` | Override storage provider address |
-| `token` | false | `USDFC` | Payment token (USDFC only) |
 | `withCDN` | false | `false` | Request CDN in storage context |
 
 Outputs include the IPFS root CID, dataset ID, piece CID, provider info, artifact paths, and upload status (`uploaded`, `reused-cache`, `reused-artifact`, or `build-only`).

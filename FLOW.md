@@ -34,7 +34,7 @@ This document explains how the action works internally and why each step exists.
 - `network`: required; must be `mainnet` or `calibration`.
 - `minStorageDays`: optional number (defaults to `0` when unset).
 - `filecoinPayBalanceLimit`: bigint parsed from USDFC string; required when `minStorageDays > 0`.
-- `providerAddress`, `token`, `withCDN`: optional advanced settings with defaults.
+- `providerAddress`, `withCDN`: optional advanced settings with defaults.
 
 The helper supports both environment-variable fallback (`INPUT_<NAME>`) and the `INPUTS_JSON` bundle populated by `action.yml`.
 

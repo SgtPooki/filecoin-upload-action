@@ -90,7 +90,6 @@ export function parseInputs(phase = 'single') {
   const minStorageDaysRaw = getInput('minStorageDays', '')
   const filecoinPayBalanceLimitRaw = getInput('filecoinPayBalanceLimit', '')
   const withCDN = parseBoolean(getInput('withCDN', 'false'))
-  const token = getInput('token', 'USDFC')
   const providerAddress = getInput('providerAddress', '0xa3971A7234a3379A1813d9867B531e7EeB20ae07')
 
   if (!contentPath) {
@@ -122,10 +121,6 @@ export function parseInputs(phase = 'single') {
     throw new Error('filecoinPayBalanceLimit must be set when minStorageDays is provided')
   }
 
-  // Validate token selection (currently USDFC only)
-  if (token && token.toUpperCase() !== 'USDFC') {
-    throw new Error('Only USDFC is supported at this time for payments. Token override will be enabled later.')
-  }
   /** @type {ParsedInputs} */
   const parsedInputs = {
     walletPrivateKey,
@@ -134,7 +129,6 @@ export function parseInputs(phase = 'single') {
     minStorageDays,
     filecoinPayBalanceLimit,
     withCDN,
-    token,
     providerAddress,
   }
 

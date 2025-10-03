@@ -53,7 +53,6 @@ export interface ParsedInputs {
   minStorageDays: number
   filecoinPayBalanceLimit?: bigint | undefined
   withCDN: boolean
-  token: string
   providerAddress: string
 }
 

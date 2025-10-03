@@ -144,11 +144,6 @@ Use this approach only when you fully trust everyone who can open PRs.
 - **Default**: `0xa3971A7234a3379A1813d9867B531e7EeB20ae07`
 - **Description**: Optional override for the storage provider.
 
-### `token`
-- **Type**: `string`
-- **Default**: `USDFC`
-- **Description**: Payment token identifier. Only `USDFC` is currently supported.
-
 ### `withCDN`
 - **Type**: `boolean`
 - **Default**: `false`
