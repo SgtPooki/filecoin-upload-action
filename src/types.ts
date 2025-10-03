@@ -42,6 +42,7 @@ export interface CombinedContext {
   providerAddress?: string
   previewUrl?: string
   paymentStatus?: PaymentStatus
+  dryRun?: boolean
 }
 
 export interface PaymentStatus extends Omit<FilecoinPinPaymentStatus, 'depositedAmount'> {

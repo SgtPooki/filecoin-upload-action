@@ -40,7 +40,7 @@ function getWorkflowRunUrl() {
  */
 export async function commentOnPR(ctx) {
   // Try to get PR number from parameter or context
-  let { ipfsRootCid, dataSetId, pieceCid, pr } = ctx
+  let { ipfsRootCid, dataSetId, pieceCid, pr, dryRun } = ctx
   const github_token = process.env.GITHUB_TOKEN || ''
   const github_repository = process.env.GITHUB_REPOSITORY || ''
 
@@ -57,8 +57,18 @@ export async function commentOnPR(ctx) {
     resolvedPrNumber = envPrNumber ? parseInt(envPrNumber, 10) : undefined
   }
 
-  if (!ipfsRootCid || !dataSetId || !pieceCid || !resolvedPrNumber) {
-    console.log('Skipping PR comment: missing required information (likely not a PR event)')
+  if (!resolvedPrNumber) {
+    console.log('Skipping PR comment: no PR number found (likely not a PR event)')
+    return
+  }
+
+  if (dryRun) {
+    console.log('Skipping PR comment: running in dry-run mode')
+    return
+  }
+
+  if (!ipfsRootCid || !dataSetId || !pieceCid) {
+    console.log('Skipping PR comment: missing required upload information')
     return
   }
 

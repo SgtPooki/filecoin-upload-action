@@ -152,6 +152,7 @@ export async function runUpload() {
     contentPath: contentPath,
     uploadStatus: 'uploaded',
     paymentStatus,
+    dryRun,
   })
 
   // Write outputs
