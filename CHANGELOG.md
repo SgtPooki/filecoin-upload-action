@@ -1,3 +1,9 @@
+## [1.0.17](https://github.com/SgtPooki/filecoin-upload-action/compare/v1.0.16...v1.0.17) (2025-10-03)
+
+### Bug Fixes
+
+* cleanup inputs/outputs & payment logic ([#9](https://github.com/SgtPooki/filecoin-upload-action/issues/9)) ([b54f09c](https://github.com/SgtPooki/filecoin-upload-action/commit/b54f09c31d296c27132e938e3519023241579b02))
+
 ## [1.0.16](https://github.com/SgtPooki/filecoin-upload-action/compare/v1.0.15...v1.0.16) (2025-10-03)
 
 ## [1.0.15](https://github.com/SgtPooki/filecoin-upload-action/compare/v1.0.14...v1.0.15) (2025-10-03)
