@@ -59,6 +59,7 @@ export interface ParsedInputs {
   filecoinPayBalanceLimit?: bigint | undefined
   withCDN: boolean
   providerAddress: string
+  dryRun: boolean
 }
 
 export interface PRMetadata {

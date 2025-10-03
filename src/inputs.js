@@ -91,6 +91,7 @@ export function parseInputs(phase = 'single') {
   const filecoinPayBalanceLimitRaw = getInput('filecoinPayBalanceLimit', '')
   const withCDN = parseBoolean(getInput('withCDN', 'false'))
   const providerAddress = getInput('providerAddress', '0xa3971A7234a3379A1813d9867B531e7EeB20ae07')
+  const dryRun = parseBoolean(getInput('dryRun', 'false'))
 
   if (!contentPath) {
     throw new FilecoinPinError('path is required', ERROR_CODES.INVALID_INPUT)
@@ -143,6 +144,7 @@ export function parseInputs(phase = 'single') {
     filecoinPayBalanceLimit,
     withCDN,
     providerAddress,
+    dryRun,
   }
 
   return parsedInputs

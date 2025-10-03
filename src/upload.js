@@ -12,6 +12,7 @@ import { writeOutputs, writeSummary } from './outputs.js'
  * @typedef {import('./types.js').CombinedContext} CombinedContext
  * @typedef {import('./types.js').ParsedInputs} ParsedInputs
  * @typedef {import('./types.js').UploadResult} UploadResult
+ * @typedef {import('./types.js').PaymentStatus} PaymentStatus
  */
 
 /**
@@ -33,6 +34,7 @@ export async function runUpload() {
     filecoinPayBalanceLimit,
     withCDN,
     providerAddress,
+    dryRun,
   } = inputs
 
   // Ensure we have PR context available when running from workflow_run
@@ -94,20 +96,56 @@ export async function runUpload() {
   if (!walletPrivateKey) {
     throw new Error('walletPrivateKey is required for upload phase')
   }
-  const synapse = await initializeSynapse({ walletPrivateKey, network: inputNetwork }, logger)
 
-  const paymentStatus = await handlePayments(synapse, { minStorageDays, filecoinPayBalanceLimit }, logger)
+  /** @type {Partial<UploadResult>} */
+  let { pieceCid, pieceId, dataSetId, provider, previewURL, network } = {}
+  /** @type {PaymentStatus} */
+  let paymentStatus
 
-  const uploadResult = /** @type {UploadResult} */ (
-    await uploadCarToFilecoin(synapse, carPath, rootCid, { withCDN, providerAddress }, logger)
-  )
-  const { pieceCid, pieceId, dataSetId, provider, previewURL, network } = uploadResult
+  if (dryRun) {
+    pieceCid = ctx.pieceCid || 'dry-run'
+    pieceId = ctx.pieceId || 'dry-run'
+    dataSetId = ctx.dataSetId || 'dry-run'
+    provider = ctx.provider || {
+      id: 'dry-run',
+      name: 'Dry Run Mode',
+    }
+    previewURL = ctx.previewUrl || 'https://example.com/ipfs/dry-run'
+    network = ctx.network || 'dry-run'
+    paymentStatus = ctx.paymentStatus || {
+      depositedAmount: '0',
+      currentBalance: '0',
+      storageRunway: 'Unknown',
+      depositedThisRun: '0',
+      network: 'dry-run',
+      address: 'dry-run',
+      filBalance: 0n,
+      usdfcBalance: 0n,
+      currentAllowances: {
+        rateAllowance: 0n,
+        lockupAllowance: 0n,
+        lockupUsed: 0n,
+      },
+    }
+  } else {
+    const synapse = await initializeSynapse({ walletPrivateKey, network: inputNetwork }, logger)
+
+    paymentStatus = await handlePayments(synapse, { minStorageDays, filecoinPayBalanceLimit }, logger)
+
+    const uploadResult = await uploadCarToFilecoin(synapse, carPath, rootCid, { withCDN, providerAddress }, logger)
+    pieceCid = uploadResult.pieceCid
+    pieceId = uploadResult.pieceId
+    dataSetId = uploadResult.dataSetId
+    provider = uploadResult.provider
+    previewURL = uploadResult.previewURL
+    network = uploadResult.network
+  }
 
   // Update context
   await mergeAndSaveContext({
-    pieceCid: pieceCid,
-    pieceId: pieceId,
-    dataSetId: dataSetId,
+    pieceCid,
+    pieceId,
+    dataSetId,
     provider,
     previewUrl: previewURL,
     network,
