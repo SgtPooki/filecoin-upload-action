@@ -58,7 +58,7 @@ jobs:
         continue-on-error: true
         with:
           path: ./examples
-          walletPrivateKey: "0x0000000000000000000000000000000000000000000000000000000000000001"  # Dummy key for validation
+          walletPrivateKey: "INVALID_PRIVATE_KEY"  # Dummy key for validation
           network: calibration
           minStorageDays: "0"  # No storage days to avoid payment logic
           filecoinPayBalanceLimit: "0"  # Small limit for validation
@@ -66,17 +66,59 @@ jobs:
       - name: Check validation result
         if: always()
         run: |
+          # Get the step output for parsing
+          echo "=== Parsing action output for validation ==="
+
+          # Check if action succeeded (should NOT happen with dummy wallet)
           if [ "${{ steps.test-load.outcome }}" == "success" ]; then
-            echo "✅ Action loaded and executed successfully"
-          elif [ "${{ steps.test-load.outcome }}" == "failure" ]; then
-            # Check if it's a wallet-related failure (expected with dummy key)
-            if [ "${{ steps.test-load.outcome }}" == "failure" ]; then
-              echo "⚠️ Action failed as expected with dummy wallet key - this validates the wallet requirement"
-              echo "✅ Validation passed: Action correctly requires valid wallet credentials"
-            else
-              echo "❌ Action failed for unexpected reasons"
-              exit 1
-            fi
+            echo "❌ SECURITY ISSUE: Action succeeded with dummy wallet key!"
+            echo "This should never happen - the dummy wallet key should cause upload to fail"
+            exit 1
+          fi
+
+          # Parse the output to validate specific success indicators
+          echo "Checking for build phase success indicators..."
+
+          # Check for IPFS Root CID generation (build phase success)
+          if echo "${{ steps.test-load.outputs }}" | grep -q "IPFS Root CID:"; then
+            echo "✅ Build phase succeeded: IPFS Root CID generated"
+            # Extract and display the CID
+            CID=$(echo "${{ steps.test-load.outputs }}" | grep "IPFS Root CID:" | sed 's/.*IPFS Root CID: //' | head -1)
+            echo "   Generated CID: $CID"
+          else
+            echo "❌ Build phase failed: No IPFS Root CID found in output"
+            exit 1
+          fi
+
+          # Check for CAR file creation
+          if echo "${{ steps.test-load.outputs }}" | grep -q "CAR file size:"; then
+            echo "✅ Build phase succeeded: CAR file created"
+            # Extract and display the size
+            SIZE=$(echo "${{ steps.test-load.outputs }}" | grep "CAR file size:" | sed 's/.*CAR file size: //' | head -1)
+            echo "   CAR file size: $SIZE"
+          else
+            echo "❌ Build phase failed: No CAR file size found in output"
+            exit 1
+          fi
+
+          # Check for early wallet validation failure (expected with dummy wallet)
+          if echo "${{ steps.test-load.outputs }}" | grep -q "Invalid wallet private key format"; then
+            echo "✅ Wallet validation failed early as expected: Invalid private key format detected"
+          else
+            echo "❌ Expected early wallet validation failure not found"
+            echo "Looking for: 'Invalid wallet private key format'"
+            echo "This means the dummy wallet key was accepted, which is a security issue"
+            exit 1
+          fi
+
+          # Final validation
+          if [ "${{ steps.test-load.outcome }}" == "failure" ]; then
+            echo ""
+            echo "🎉 VALIDATION PASSED:"
+            echo "✅ Build phase succeeded (CAR created, IPFS Root CID generated)"
+            echo "✅ Wallet validation failed early (no network calls made)"
+            echo "✅ Security validation: Action requires valid wallet credentials"
+            echo "✅ Performance validation: Invalid keys rejected before expensive operations"
           else
             echo "⚠️ Action was skipped or cancelled"
             exit 1
