@@ -115,7 +115,10 @@ export function parseInputs(phase = 'single') {
       // Try to create a wallet from the private key to validate format
       new ethers.Wallet(walletPrivateKey)
     } catch (error) {
-      throw new FilecoinPinError(`Invalid wallet private key format: ${getErrorMessage(error)}`, ERROR_CODES.INVALID_PRIVATE_KEY)
+      throw new FilecoinPinError(
+        `Invalid wallet private key format: ${getErrorMessage(error)}`,
+        ERROR_CODES.INVALID_PRIVATE_KEY
+      )
     }
   }
 

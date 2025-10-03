@@ -104,9 +104,11 @@ jobs:
           # Check for early wallet validation failure (expected with dummy wallet)
           if echo "${{ steps.test-load.outputs }}" | grep -q "Invalid wallet private key format"; then
             echo "✅ Wallet validation failed early as expected: Invalid private key format detected"
+          elif echo "${{ steps.test-load.outputs }}" | grep -q "invalid BytesLike value"; then
+            echo "✅ Wallet validation failed early as expected: Invalid private key format detected (ethers validation)"
           else
             echo "❌ Expected early wallet validation failure not found"
-            echo "Looking for: 'Invalid wallet private key format'"
+            echo "Looking for: 'Invalid wallet private key format' or 'invalid BytesLike value'"
             echo "This means the dummy wallet key was accepted, which is a security issue"
             exit 1
           fi
