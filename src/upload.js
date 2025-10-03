@@ -141,6 +141,8 @@ export async function runUpload() {
     network = uploadResult.network
   }
 
+  const uploadStatus = dryRun ? 'dry-run' : 'uploaded'
+
   // Update context
   await mergeAndSaveContext({
     pieceCid,
@@ -150,7 +152,7 @@ export async function runUpload() {
     previewUrl: previewURL,
     network,
     contentPath: contentPath,
-    uploadStatus: 'uploaded',
+    uploadStatus,
     paymentStatus,
     dryRun,
   })
@@ -163,7 +165,7 @@ export async function runUpload() {
     providerId: provider.id || '',
     providerName: provider.name || '',
     carPath: carPath,
-    uploadStatus: 'uploaded',
+    uploadStatus,
   })
 
   console.log('\n━━━ Upload Complete ━━━')
