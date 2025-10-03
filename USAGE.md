@@ -144,11 +144,6 @@ Use this approach only when you fully trust everyone who can open PRs.
 - **Default**: `0xa3971A7234a3379A1813d9867B531e7EeB20ae07`
 - **Description**: Optional override for the storage provider.
 
-### `token`
-- **Type**: `string`
-- **Default**: `USDFC`
-- **Description**: Payment token identifier. Only `USDFC` is currently supported.
-
 ### `withCDN`
 - **Type**: `boolean`
 - **Default**: `false`
@@ -158,11 +153,11 @@ Use this approach only when you fully trust everyone who can open PRs.
 
 ## Outputs
 
-- `ipfs_root_cid`: IPFS Root CID
-- `data_set_id`: Synapse Data Set ID
-- `piece_cid`: Filecoin Piece CID
-- `provider_id`: Storage Provider ID
-- `provider_name`: Storage Provider Name
-- `car_path`: Path to the generated CAR file
-- `upload_status`: Status of the run (e.g., `uploaded`, `fork-pr-blocked`)
+- `ipfsRootCid`: IPFS Root CID
+- `dataSetId`: Synapse Data Set ID
+- `pieceCid`: Filecoin Piece CID
+- `providerId`: Storage Provider ID
+- `providerName`: Storage Provider Name
+- `carPath`: Path to the generated CAR file
+- `uploadStatus`: Status of the run (e.g., `uploaded`, `fork-pr-blocked`)
 

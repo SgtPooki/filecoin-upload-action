@@ -1,9 +1,11 @@
 import { promises as fs } from 'node:fs'
+import { ethers } from 'ethers'
+import { formatUSDFC } from 'filecoin-pin/dist/payments/setup.js'
 import { getErrorMessage } from './errors.js'
 
-// Import types for JSDoc
 /**
  * @typedef {import('./types.js').CombinedContext} CombinedContext
+ * @typedef {import('./types.js').PaymentStatus} PaymentStatus
  */
 
 /**
@@ -67,15 +69,31 @@ export async function writeSummary(context, status) {
  */
 export function getOutputSummary(context, status) {
   const network = context?.network || ''
-  const ipfsRootCid = context?.ipfs_root_cid || ''
-  const dataSetId = context?.data_set_id || ''
-  const pieceCid = context?.piece_cid || ''
+  const ipfsRootCid = context?.ipfsRootCid || ''
+  const dataSetId = context?.dataSetId || ''
+  const pieceCid = context?.pieceCid || ''
   const provider = context?.provider || {}
-  const previewURL = context?.preview_url || ''
-  const carPath = context?.car_path || ''
-  const carSize = context?.car_size
-  const carDownloadUrl = context?.car_download_url || (carPath ? `[download link](${carPath})` : 'download')
-  const paymentStatus = context?.payment_status || {}
+  const previewURL = context?.previewUrl || ''
+  const carPath = context?.carPath || ''
+  const carSize = context?.carSize
+  const carDownloadUrl = context?.carDownloadUrl || (carPath ? `[download link](${carPath})` : 'download')
+  /** @type {PaymentStatus} */
+  const paymentStatus = {
+    depositedAmount: '0',
+    currentBalance: '0',
+    storageRunway: 'Unknown',
+    depositedThisRun: '0',
+    network,
+    address: 'Unknown',
+    filBalance: 0n,
+    usdfcBalance: 0n,
+    currentAllowances: {
+      rateAllowance: 0n,
+      lockupAllowance: 0n,
+      lockupUsed: 0n,
+    },
+    ...context?.paymentStatus,
+  }
 
   return [
     '## Filecoin Pin Upload',
@@ -95,9 +113,9 @@ export function getOutputSummary(context, status) {
     `* Piece download direct from provider: ${previewURL}`,
     '',
     '**Payment:**',
-    `* Current Filecoin Pay balance: ${paymentStatus.currentBalance || 'Unknown'} USDFC`,
-    `* Amount deposited to Filecoin Pay by this workflow: ${paymentStatus.depositedThisRun || '0'} USDFC`,
-    `* Data Set Storage runway (assuming all Filecoin Pay balance is used exclusively for this data set): ${paymentStatus.storageRunway || 'Unknown'}`,
+    `* Current Filecoin Pay balance: ${formatUSDFC(ethers.parseUnits(paymentStatus.currentBalance, 18))} USDFC`,
+    `* Amount deposited to Filecoin Pay by this workflow: ${formatUSDFC(ethers.parseUnits(paymentStatus.depositedThisRun, 18))} USDFC`,
+    `* Data Set Storage runway: ${paymentStatus.storageRunway}`,
     '',
   ].join('\n')
 }

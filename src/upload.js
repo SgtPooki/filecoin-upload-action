@@ -1,26 +1,18 @@
 import { access } from 'node:fs/promises'
-import { ethers } from 'ethers'
-import { getPaymentStatus } from 'filecoin-pin/dist/synapse/payments.js'
 import pc from 'picocolors'
 import pino from 'pino'
 import { commentOnPR } from './comments/comment.js'
 import { getGlobalContext, mergeAndSaveContext } from './context.js'
-import {
-  calculateStorageRunway,
-  cleanupSynapse,
-  handlePayments,
-  initializeSynapse,
-  uploadCarToFilecoin,
-} from './filecoin.js'
+import { cleanupSynapse, handlePayments, initializeSynapse, uploadCarToFilecoin } from './filecoin.js'
 import { ensurePullRequestContext } from './github.js'
 import { parseInputs } from './inputs.js'
 import { writeOutputs, writeSummary } from './outputs.js'
 
-// Import types for JSDoc
 /**
  * @typedef {import('./types.js').CombinedContext} CombinedContext
  * @typedef {import('./types.js').ParsedInputs} ParsedInputs
  * @typedef {import('./types.js').UploadResult} UploadResult
+ * @typedef {import('./types.js').PaymentStatus} PaymentStatus
  */
 
 /**
@@ -42,6 +34,7 @@ export async function runUpload() {
     filecoinPayBalanceLimit,
     withCDN,
     providerAddress,
+    dryRun,
   } = inputs
 
   // Ensure we have PR context available when running from workflow_run
@@ -53,21 +46,21 @@ export async function runUpload() {
   console.log('[context-debug] Loaded context from build phase:', ctx)
 
   // Check if this was a fork PR that was blocked
-  if (ctx.upload_status === 'fork-pr-blocked') {
+  if (ctx.uploadStatus === 'fork-pr-blocked') {
     console.log('━━━ Fork PR Upload Blocked ━━━')
     console.log('::notice::Fork PR detected - content built but not uploaded to Filecoin, will comment on PR')
 
-    const rootCid = ctx.ipfs_root_cid || ''
+    const rootCid = ctx.ipfsRootCid || ''
 
     // Write outputs indicating fork PR was blocked
     await writeOutputs({
-      ipfs_root_cid: rootCid,
-      data_set_id: '',
-      piece_cid: '',
-      provider_id: '',
-      provider_name: '',
-      car_path: ctx.car_path || '',
-      upload_status: 'fork-pr-blocked',
+      ipfsRootCid: rootCid,
+      dataSetId: '',
+      pieceCid: '',
+      providerId: '',
+      providerName: '',
+      carPath: ctx.carPath || '',
+      uploadStatus: 'fork-pr-blocked',
     })
 
     await writeSummary(ctx, 'Fork PR blocked')
@@ -79,15 +72,15 @@ export async function runUpload() {
     return
   }
 
-  if (!ctx.ipfs_root_cid) {
+  if (!ctx.ipfsRootCid) {
     throw new Error('No IPFS Root CID found in context. Build phase may have failed.')
   }
 
-  const rootCid = ctx.ipfs_root_cid
+  const rootCid = ctx.ipfsRootCid
   console.log(`Root CID from context: ${rootCid}`)
 
   // Get CAR file path from context
-  const carPath = ctx.car_path
+  const carPath = ctx.carPath
   if (!carPath) {
     throw new Error('No CAR file path found in context. Build phase may have failed.')
   }
@@ -103,49 +96,76 @@ export async function runUpload() {
   if (!walletPrivateKey) {
     throw new Error('walletPrivateKey is required for upload phase')
   }
-  const synapse = await initializeSynapse({ walletPrivateKey, network: inputNetwork }, logger)
 
-  // Get initial payment status to track deposits
-  const initialPaymentStatus = await getPaymentStatus(synapse)
-  const paymentStatus = await handlePayments(synapse, { minStorageDays, filecoinPayBalanceLimit }, logger)
+  /** @type {Partial<UploadResult>} */
+  let { pieceCid, pieceId, dataSetId, provider, previewURL, network } = {}
+  /** @type {PaymentStatus} */
+  let paymentStatus
 
-  const uploadResult = /** @type {UploadResult} */ (
-    await uploadCarToFilecoin(synapse, carPath, rootCid, { withCDN, providerAddress }, logger)
-  )
-  const { pieceCid, pieceId, dataSetId, provider, previewURL, network } = uploadResult
+  if (dryRun) {
+    pieceCid = ctx.pieceCid || 'dry-run'
+    pieceId = ctx.pieceId || 'dry-run'
+    dataSetId = ctx.dataSetId || 'dry-run'
+    provider = ctx.provider || {
+      id: 'dry-run',
+      name: 'Dry Run Mode',
+    }
+    previewURL = ctx.previewUrl || 'https://example.com/ipfs/dry-run'
+    network = ctx.network || 'dry-run'
+    paymentStatus = ctx.paymentStatus || {
+      depositedAmount: '0',
+      currentBalance: '0',
+      storageRunway: 'Unknown',
+      depositedThisRun: '0',
+      network: 'dry-run',
+      address: 'dry-run',
+      filBalance: 0n,
+      usdfcBalance: 0n,
+      currentAllowances: {
+        rateAllowance: 0n,
+        lockupAllowance: 0n,
+        lockupUsed: 0n,
+      },
+    }
+  } else {
+    const synapse = await initializeSynapse({ walletPrivateKey, network: inputNetwork }, logger)
 
-  // Calculate the amount deposited in this run
-  const initialBalance = initialPaymentStatus?.depositedAmount || 0n
-  const finalBalance = paymentStatus?.depositedAmount || 0n
-  const depositedThisRun = finalBalance - initialBalance
+    paymentStatus = await handlePayments(synapse, { minStorageDays, filecoinPayBalanceLimit }, logger)
+
+    const uploadResult = await uploadCarToFilecoin(synapse, carPath, rootCid, { withCDN, providerAddress }, logger)
+    pieceCid = uploadResult.pieceCid
+    pieceId = uploadResult.pieceId
+    dataSetId = uploadResult.dataSetId
+    provider = uploadResult.provider
+    previewURL = uploadResult.previewURL
+    network = uploadResult.network
+  }
+
+  const uploadStatus = dryRun ? 'dry-run' : 'uploaded'
 
   // Update context
   await mergeAndSaveContext({
-    piece_cid: pieceCid,
-    piece_id: pieceId,
-    data_set_id: dataSetId,
+    pieceCid,
+    pieceId,
+    dataSetId,
     provider,
-    preview_url: previewURL,
+    previewUrl: previewURL,
     network,
-    content_path: contentPath,
-    upload_status: 'uploaded',
-    payment_status: {
-      depositedAmount: paymentStatus?.depositedAmount ? ethers.formatUnits(paymentStatus.depositedAmount, 18) : '0',
-      currentBalance: paymentStatus?.depositedAmount ? ethers.formatUnits(paymentStatus.depositedAmount, 18) : '0',
-      storageRunway: calculateStorageRunway(paymentStatus),
-      depositedThisRun: ethers.formatUnits(depositedThisRun, 18),
-    },
+    contentPath: contentPath,
+    uploadStatus,
+    paymentStatus,
+    dryRun,
   })
 
   // Write outputs
   await writeOutputs({
-    ipfs_root_cid: rootCid,
-    data_set_id: dataSetId,
-    piece_cid: pieceCid,
-    provider_id: provider.id || '',
-    provider_name: provider.name || '',
-    car_path: carPath,
-    upload_status: 'uploaded',
+    ipfsRootCid: rootCid,
+    dataSetId: dataSetId,
+    pieceCid: pieceCid,
+    providerId: provider.id || '',
+    providerName: provider.name || '',
+    carPath: carPath,
+    uploadStatus,
   })
 
   console.log('\n━━━ Upload Complete ━━━')

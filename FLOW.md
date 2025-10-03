@@ -12,7 +12,7 @@ This document explains how the action works internally and why each step exists.
 
 2. **Build phase (`src/build.js`)**
    - Parses inputs via `parseInputs('compute')`. This validates `path` and `network` but does not require the wallet key.
-   - Detects fork PRs (by comparing head/base repo names). When detected, it records `upload_status=fork-pr-blocked` in the context and emits a notice that upload will be blocked.
+   - Detects fork PRs (by comparing head/base repo names). When detected, it records `uploadStatus=fork-pr-blocked` in the context and emits a notice that upload will be blocked.
    - Resolves `path` against the workspace and generates a CAR using `createCarFile()`.
    - Stores the CAR file path, size, and IPFS root CID in the in-memory context (see `src/context.js`).
    - Merges additional metadata (run id, PR details) through `mergeAndSaveContext()`.
@@ -34,7 +34,7 @@ This document explains how the action works internally and why each step exists.
 - `network`: required; must be `mainnet` or `calibration`.
 - `minStorageDays`: optional number (defaults to `0` when unset).
 - `filecoinPayBalanceLimit`: bigint parsed from USDFC string; required when `minStorageDays > 0`.
-- `providerAddress`, `token`, `withCDN`: optional advanced settings with defaults.
+- `providerAddress`, `withCDN`: optional advanced settings with defaults.
 
 The helper supports both environment-variable fallback (`INPUT_<NAME>`) and the `INPUTS_JSON` bundle populated by `action.yml`.
 

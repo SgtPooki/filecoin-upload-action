@@ -5,7 +5,6 @@ import { createCarFile } from './filecoin.js'
 import { readEventPayload } from './github.js'
 import { formatSize } from './outputs.js'
 
-// Import types for JSDoc
 /**
  * @typedef {import('./types.js').CombinedContext} CombinedContext
  * @typedef {import('./types.js').ParsedInputs} ParsedInputs
@@ -22,8 +21,8 @@ async function updateBuildContext() {
 
   /** @type {Partial<CombinedContext>} */
   const payload = {
-    build_run_id: buildRunId,
-    event_name: eventName,
+    buildRunId: buildRunId,
+    eventName: eventName,
   }
 
   // Handle PR context
@@ -60,7 +59,7 @@ export async function runBuild() {
       console.log('::notice::Building CAR file but upload will be blocked')
       // update the context with the upload status
       mergeAndSaveContext({
-        upload_status: 'fork-pr-blocked',
+        uploadStatus: 'fork-pr-blocked',
       })
     }
   }
@@ -96,10 +95,10 @@ export async function runBuild() {
 
   // Update context with CID and CAR info
   await mergeAndSaveContext({
-    ipfs_root_cid: ipfsRootCid,
-    car_size: carSize,
-    car_path: carPath,
-    upload_status: uploadStatus,
+    ipfsRootCid: ipfsRootCid,
+    carSize: carSize,
+    carPath: carPath,
+    uploadStatus: uploadStatus,
   })
 
   console.log('✓ Build complete. CAR file created and stored in context')

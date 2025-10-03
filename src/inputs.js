@@ -1,7 +1,7 @@
 import { resolve } from 'node:path'
 import { ethers } from 'ethers'
+import { ERROR_CODES, FilecoinPinError, getErrorMessage } from './errors.js'
 
-// Import types for JSDoc
 /**
  * @typedef {import('./types.js').ParsedInputs} ParsedInputs
  */
@@ -90,24 +90,37 @@ export function parseInputs(phase = 'single') {
   const minStorageDaysRaw = getInput('minStorageDays', '')
   const filecoinPayBalanceLimitRaw = getInput('filecoinPayBalanceLimit', '')
   const withCDN = parseBoolean(getInput('withCDN', 'false'))
-  const token = getInput('token', 'USDFC')
   const providerAddress = getInput('providerAddress', '0xa3971A7234a3379A1813d9867B531e7EeB20ae07')
+  const dryRun = parseBoolean(getInput('dryRun', 'false'))
 
   if (!contentPath) {
-    throw new Error('path is required')
+    throw new FilecoinPinError('path is required', ERROR_CODES.INVALID_INPUT)
   }
 
   const normalizedNetwork = networkRaw.trim().toLowerCase()
   /** @type {'mainnet' | 'calibration'} */
   const network = /** @type {'mainnet' | 'calibration'} */ (normalizedNetwork)
   if (!network || (network !== 'mainnet' && network !== 'calibration')) {
-    throw new Error('network must be either "mainnet" or "calibration"')
+    throw new FilecoinPinError('network must be either "mainnet" or "calibration"', ERROR_CODES.INVALID_INPUT)
   }
 
   // Validate required inputs (only for phases that need wallet)
   // Build mode (compute phase) doesn't need the wallet
   if (phase !== 'compute' && !walletPrivateKey) {
     throw new Error('walletPrivateKey is required')
+  }
+
+  // Validate wallet private key format early to avoid network calls
+  if (phase !== 'compute' && walletPrivateKey) {
+    try {
+      // Try to create a wallet from the private key to validate format
+      new ethers.Wallet(walletPrivateKey)
+    } catch (error) {
+      throw new FilecoinPinError(
+        `Invalid wallet private key format: ${getErrorMessage(error)}`,
+        ERROR_CODES.INVALID_PRIVATE_KEY
+      )
+    }
   }
 
   // Parse numeric values
@@ -122,10 +135,6 @@ export function parseInputs(phase = 'single') {
     throw new Error('filecoinPayBalanceLimit must be set when minStorageDays is provided')
   }
 
-  // Validate token selection (currently USDFC only)
-  if (token && token.toUpperCase() !== 'USDFC') {
-    throw new Error('Only USDFC is supported at this time for payments. Token override will be enabled later.')
-  }
   /** @type {ParsedInputs} */
   const parsedInputs = {
     walletPrivateKey,
@@ -134,8 +143,8 @@ export function parseInputs(phase = 'single') {
     minStorageDays,
     filecoinPayBalanceLimit,
     withCDN,
-    token,
     providerAddress,
+    dryRun,
   }
 
   return parsedInputs

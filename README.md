@@ -126,6 +126,6 @@ Releases are automatically created when changes are pushed to `main` with conven
 
 ## Caching & Artifacts
 
-- Cache key: `filecoin-pin-v1-${ipfs_root_cid}` enables reuse for identical content.
+- Cache key: `filecoin-pin-v1-${ipfsRootCid}` enables reuse for identical content.
 - Artifacts: `filecoin-pin-artifacts/upload.car` and `filecoin-pin-artifacts/context.json` are published for each run.
 - PR comments include the IPFS root CID, dataset ID, piece CID, and preview link.

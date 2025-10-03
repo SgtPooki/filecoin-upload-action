@@ -1,49 +1,55 @@
 /**
  * TypeScript type definitions for the Filecoin Upload Action
  */
+import type { PaymentStatus as FilecoinPinPaymentStatus } from 'filecoin-pin/dist/synapse/payments.js'
+
+export type { PaymentStatus as FilecoinPinPaymentStatus } from 'filecoin-pin/dist/synapse/payments.js'
 
 export interface CombinedContext {
-  ipfs_root_cid?: string
-  car_path?: string
-  car_filename?: string
-  car_download_url?: string
-  car_size?: number | undefined
-  artifact_name?: string
-  build_run_id?: string
-  event_name?: string
+  ipfsRootCid?: string
+  carPath?: string
+  carFilename?: string
+  carDownloadUrl?: string
+  carSize?: number | undefined
+  artifactName?: string
+  buildRunId?: string
+  eventName?: string
   pr?: {
     number?: number
     sha?: string
     title?: string
     author?: string
   }
-  piece_cid?: string
-  piece_id?: string
-  data_set_id?: string
+  pieceCid?: string
+  pieceId?: string
+  dataSetId?: string
   provider?: {
     id?: string
     name?: string
   }
-  upload_status?: string
-  run_id?: string
+  uploadStatus?: string
+  runId?: string
   repository?: string
   mode?: string
   phase?: string
   network?: string
-  artifact_car_path?: string
-  content_path?: string
-  wallet_private_key?: string
-  min_storage_days?: number
-  filecoin_pay_balance_limit?: bigint
-  with_cdn?: boolean
-  provider_address?: string
-  preview_url?: string
-  payment_status?: {
-    depositedAmount?: string
-    currentBalance?: string
-    storageRunway?: string
-    depositedThisRun?: string
-  }
+  artifactCarPath?: string
+  contentPath?: string
+  walletPrivateKey?: string
+  minStorageDays?: number
+  filecoinPayBalanceLimit?: bigint
+  withCDN?: boolean
+  providerAddress?: string
+  previewUrl?: string
+  paymentStatus?: PaymentStatus
+  dryRun?: boolean
+}
+
+export interface PaymentStatus extends Omit<FilecoinPinPaymentStatus, 'depositedAmount'> {
+  depositedAmount: string
+  currentBalance: string
+  storageRunway: string
+  depositedThisRun: string
 }
 
 export interface ParsedInputs {
@@ -53,8 +59,8 @@ export interface ParsedInputs {
   minStorageDays: number
   filecoinPayBalanceLimit?: bigint | undefined
   withCDN: boolean
-  token: string
   providerAddress: string
+  dryRun: boolean
 }
 
 export interface PRMetadata {
