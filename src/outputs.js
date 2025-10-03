@@ -1,4 +1,6 @@
 import { promises as fs } from 'node:fs'
+import { ethers } from 'ethers'
+import { formatUSDFC } from 'filecoin-pin/dist/payments/setup.js'
 import { getErrorMessage } from './errors.js'
 
 // Import types for JSDoc
@@ -95,9 +97,9 @@ export function getOutputSummary(context, status) {
     `* Piece download direct from provider: ${previewURL}`,
     '',
     '**Payment:**',
-    `* Current Filecoin Pay balance: ${paymentStatus.currentBalance || 'Unknown'} USDFC`,
-    `* Amount deposited to Filecoin Pay by this workflow: ${paymentStatus.depositedThisRun || '0'} USDFC`,
-    `* Data Set Storage runway (assuming all Filecoin Pay balance is used exclusively for this data set): ${paymentStatus.storageRunway || 'Unknown'}`,
+    `* Current Filecoin Pay balance: ${formatUSDFC(ethers.parseUnits(paymentStatus.currentBalance, 18))} USDFC`,
+    `* Amount deposited to Filecoin Pay by this workflow: ${formatUSDFC(ethers.parseUnits(paymentStatus.depositedThisRun, 18))} USDFC`,
+    `* Data Set Storage runway: ${paymentStatus.storageRunway}`,
     '',
   ].join('\n')
 }
