@@ -58,11 +58,11 @@ export async function mirrorToStandardCache(workspace, ipfsRootCid, contextText)
     const contextData = JSON.parse(contextText)
     // Map common fields
     const mapped = {
-      ipfs_root_cid: contextData.ipfsRootCid || existing.ipfs_root_cid || ipfsRootCid,
-      piece_cid: contextData.pieceCid || existing.piece_cid,
-      data_set_id: contextData.dataSetId || existing.data_set_id,
+      ipfsRootCid: contextData.ipfsRootCid || existing.ipfsRootCid || ipfsRootCid,
+      pieceCid: contextData.pieceCid || existing.pieceCid,
+      dataSetId: contextData.dataSetId || existing.dataSetId,
       provider: contextData.provider || existing.provider,
-      car_path: contextData.carPath || existing.car_path,
+      carPath: contextData.carPath || existing.carPath,
     }
     const merged = { ...existing, ...mapped }
     await fs.writeFile(ctxPath, JSON.stringify(merged, null, 2))

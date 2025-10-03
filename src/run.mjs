@@ -6,8 +6,8 @@ import { runUpload } from './upload.js'
 
 async function main() {
   await mergeAndSaveContext({
-    event_name: process.env.GITHUB_EVENT_NAME || '',
-    run_id: process.env.GITHUB_RUN_ID || '',
+    eventName: process.env.GITHUB_EVENT_NAME || '',
+    runId: process.env.GITHUB_RUN_ID || '',
     repository: process.env.GITHUB_REPOSITORY || '',
   })
 

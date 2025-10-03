@@ -40,7 +40,7 @@ function getWorkflowRunUrl() {
  */
 export async function commentOnPR(ctx) {
   // Try to get PR number from parameter or context
-  let { ipfs_root_cid, data_set_id, piece_cid, pr } = ctx
+  let { ipfsRootCid, dataSetId, pieceCid, pr } = ctx
   const github_token = process.env.GITHUB_TOKEN || ''
   const github_repository = process.env.GITHUB_REPOSITORY || ''
 
@@ -57,18 +57,18 @@ export async function commentOnPR(ctx) {
     resolvedPrNumber = envPrNumber ? parseInt(envPrNumber, 10) : undefined
   }
 
-  if (!ipfs_root_cid || !data_set_id || !piece_cid || !resolvedPrNumber) {
+  if (!ipfsRootCid || !dataSetId || !pieceCid || !resolvedPrNumber) {
     console.log('Skipping PR comment: missing required information (likely not a PR event)')
     return
   }
 
   // If this is a fork PR that was blocked, we need to comment with explanation
-  if (ctx.pr && ctx.upload_status === 'fork-pr-blocked') {
+  if (ctx.pr && ctx.uploadStatus === 'fork-pr-blocked') {
     console.log('Posting comment for blocked fork PR')
     // Set dummy values so the comment function doesn't skip
-    if (!ipfs_root_cid) ipfs_root_cid = 'N/A (fork PR blocked)'
-    if (!data_set_id) data_set_id = 'N/A (fork PR blocked)'
-    if (!piece_cid) piece_cid = 'N/A (fork PR blocked)'
+    if (!ipfsRootCid) ipfsRootCid = 'N/A (fork PR blocked)'
+    if (!dataSetId) dataSetId = 'N/A (fork PR blocked)'
+    if (!pieceCid) pieceCid = 'N/A (fork PR blocked)'
   }
 
   const [owner, repo] = github_repository.split('/')

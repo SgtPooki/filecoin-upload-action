@@ -42,27 +42,27 @@ inputs:
 
 
 outputs:
-  ipfs_root_cid:
+  ipfsRootCid:
     description: IPFS Root CID
-    value: ${{ steps.run.outputs.ipfs_root_cid }}
-  data_set_id:
+    value: ${{ steps.run.outputs.ipfsRootCid }}
+  dataSetId:
     description: Synapse Data Set ID
-    value: ${{ steps.run.outputs.data_set_id }}
-  piece_cid:
+    value: ${{ steps.run.outputs.dataSetId }}
+  pieceCid:
     description: Filecoin Piece CID
-    value: ${{ steps.run.outputs.piece_cid }}
-  provider_id:
+    value: ${{ steps.run.outputs.pieceCid }}
+  providerId:
     description: Storage Provider ID
-    value: ${{ steps.run.outputs.provider_id }}
-  provider_name:
+    value: ${{ steps.run.outputs.providerId }}
+  providerName:
     description: Storage Provider Name
-    value: ${{ steps.run.outputs.provider_name }}
-  car_path:
+    value: ${{ steps.run.outputs.providerName }}
+  carPath:
     description: Path to the created CAR file
-    value: ${{ steps.run.outputs.car_path }}
-  upload_status:
+    value: ${{ steps.run.outputs.carPath }}
+  uploadStatus:
     description: Upload status (uploaded, reused-cache, reused-artifact)
-    value: ${{ steps.run.outputs.upload_status }}
+    value: ${{ steps.run.outputs.uploadStatus }}
 
 runs:
   using: "composite"

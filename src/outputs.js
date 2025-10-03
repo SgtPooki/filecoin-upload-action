@@ -67,15 +67,15 @@ export async function writeSummary(context, status) {
  */
 export function getOutputSummary(context, status) {
   const network = context?.network || ''
-  const ipfsRootCid = context?.ipfs_root_cid || ''
-  const dataSetId = context?.data_set_id || ''
-  const pieceCid = context?.piece_cid || ''
+  const ipfsRootCid = context?.ipfsRootCid || ''
+  const dataSetId = context?.dataSetId || ''
+  const pieceCid = context?.pieceCid || ''
   const provider = context?.provider || {}
-  const previewURL = context?.preview_url || ''
-  const carPath = context?.car_path || ''
-  const carSize = context?.car_size
-  const carDownloadUrl = context?.car_download_url || (carPath ? `[download link](${carPath})` : 'download')
-  const paymentStatus = context?.payment_status || {}
+  const previewURL = context?.previewUrl || ''
+  const carPath = context?.carPath || ''
+  const carSize = context?.carSize
+  const carDownloadUrl = context?.carDownloadUrl || (carPath ? `[download link](${carPath})` : 'download')
+  const paymentStatus = context?.paymentStatus || {}
 
   return [
     '## Filecoin Pin Upload',

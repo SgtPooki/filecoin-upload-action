@@ -53,21 +53,21 @@ export async function runUpload() {
   console.log('[context-debug] Loaded context from build phase:', ctx)
 
   // Check if this was a fork PR that was blocked
-  if (ctx.upload_status === 'fork-pr-blocked') {
+  if (ctx.uploadStatus === 'fork-pr-blocked') {
     console.log('━━━ Fork PR Upload Blocked ━━━')
     console.log('::notice::Fork PR detected - content built but not uploaded to Filecoin, will comment on PR')
 
-    const rootCid = ctx.ipfs_root_cid || ''
+    const rootCid = ctx.ipfsRootCid || ''
 
     // Write outputs indicating fork PR was blocked
     await writeOutputs({
-      ipfs_root_cid: rootCid,
-      data_set_id: '',
-      piece_cid: '',
-      provider_id: '',
-      provider_name: '',
-      car_path: ctx.car_path || '',
-      upload_status: 'fork-pr-blocked',
+      ipfsRootCid: rootCid,
+      dataSetId: '',
+      pieceCid: '',
+      providerId: '',
+      providerName: '',
+      carPath: ctx.carPath || '',
+      uploadStatus: 'fork-pr-blocked',
     })
 
     await writeSummary(ctx, 'Fork PR blocked')
@@ -79,15 +79,15 @@ export async function runUpload() {
     return
   }
 
-  if (!ctx.ipfs_root_cid) {
+  if (!ctx.ipfsRootCid) {
     throw new Error('No IPFS Root CID found in context. Build phase may have failed.')
   }
 
-  const rootCid = ctx.ipfs_root_cid
+  const rootCid = ctx.ipfsRootCid
   console.log(`Root CID from context: ${rootCid}`)
 
   // Get CAR file path from context
-  const carPath = ctx.car_path
+  const carPath = ctx.carPath
   if (!carPath) {
     throw new Error('No CAR file path found in context. Build phase may have failed.')
   }
@@ -121,15 +121,15 @@ export async function runUpload() {
 
   // Update context
   await mergeAndSaveContext({
-    piece_cid: pieceCid,
-    piece_id: pieceId,
-    data_set_id: dataSetId,
+    pieceCid: pieceCid,
+    pieceId: pieceId,
+    dataSetId: dataSetId,
     provider,
-    preview_url: previewURL,
+    previewUrl: previewURL,
     network,
-    content_path: contentPath,
-    upload_status: 'uploaded',
-    payment_status: {
+    contentPath: contentPath,
+    uploadStatus: 'uploaded',
+    paymentStatus: {
       depositedAmount: paymentStatus?.depositedAmount ? ethers.formatUnits(paymentStatus.depositedAmount, 18) : '0',
       currentBalance: paymentStatus?.depositedAmount ? ethers.formatUnits(paymentStatus.depositedAmount, 18) : '0',
       storageRunway: calculateStorageRunway(paymentStatus),
@@ -139,13 +139,13 @@ export async function runUpload() {
 
   // Write outputs
   await writeOutputs({
-    ipfs_root_cid: rootCid,
-    data_set_id: dataSetId,
-    piece_cid: pieceCid,
-    provider_id: provider.id || '',
-    provider_name: provider.name || '',
-    car_path: carPath,
-    upload_status: 'uploaded',
+    ipfsRootCid: rootCid,
+    dataSetId: dataSetId,
+    pieceCid: pieceCid,
+    providerId: provider.id || '',
+    providerName: provider.name || '',
+    carPath: carPath,
+    uploadStatus: 'uploaded',
   })
 
   console.log('\n━━━ Upload Complete ━━━')
